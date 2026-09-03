@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+```
+<title>Campus Vegetation Viewer</title>
+
+<!-- Leaflet CSS -->
+<link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    crossorigin=""
+>
+
+<!-- Application CSS -->
+<link rel="stylesheet" href="css/style.css">
+```
+
+</head>
+
+<body>
+
+<div class="app">
+
+```
+<!-- Header -->
+<header class="app-header">
+    <div>
+        <h1>Green Space Audit</h1>
+        <p>IIT Bombay Powai Campus</p>
+    </div>
+
+    <div class="header-actions">
+        <button id="searchToggle" class="header-button" type="button">
+            Search
+        </button>
+
+        <button id="layersToggle" class="header-button" type="button">
+            Layers
+        </button>
+    </div>
+</header>
+
+
+<!-- Search -->
+<section id="searchPanel" class="search-panel hidden">
+
+    <label for="searchInput">
+        Search vegetation
+    </label>
+
+    <div class="search-row">
+        <input
+            id="searchInput"
+            type="search"
+            placeholder="Tree ID, Plant ID, species..."
+            autocomplete="off"
+        >
+
+        <button id="clearSearch" type="button">
+            Clear
+        </button>
+    </div>
+
+    <div id="searchResults" class="search-results"></div>
+
+</section>
+
+
+<!-- Main application -->
+<main class="main-layout">
+
+    <!-- Map -->
+    <section class="map-section">
+
+        <div id="map"></div>
+
+        <!-- Map statistics -->
+        <div class="map-stats">
+
+            <div class="stat">
+                <span class="stat-number" id="plantCount">0</span>
+                <span class="stat-label">Plants</span>
+            </div>
+
+            <div class="stat">
+                <span class="stat-number" id="treeCount">0</span>
+                <span class="stat-label">Trees</span>
+            </div>
+
+            <div class="stat">
+                <span class="stat-number" id="turfCount">0</span>
+                <span class="stat-label">Turf</span>
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- Side information panel -->
+    <aside id="infoPanel" class="info-panel">
+
+        <div class="info-header">
+
+            <div>
+                <span id="infoType" class="feature-type">
+                    Select a feature
+                </span>
+
+                <h2 id="infoTitle">
+                    Vegetation information
+                </h2>
+            </div>
+
+            <button
+                id="closeInfo"
+                class="close-button"
+                type="button"
+                aria-label="Close information panel"
+            >
+                ×
+            </button>
+
+        </div>
+
+        <div id="infoContent" class="info-content">
+
+            <div class="empty-state">
+
+                <div class="empty-icon">🌱</div>
+
+                <h3>Select a vegetation feature</h3>
+
+                <p>
+                    Tap or click a plant, tree, turf area,
+                    or parcel on the map to view its information.
+                </p>
+
+            </div>
+
+        </div>
+
+    </aside>
+
+</main>
+
+
+<!-- Mobile controls -->
+<nav class="mobile-controls">
+
+    <button id="mobileLayers" type="button">
+        <span>☰</span>
+        <span>Layers</span>
+    </button>
+
+    <button id="mobileSearch" type="button">
+        <span>⌕</span>
+        <span>Search</span>
+    </button>
+
+    <button id="mobileInfo" type="button">
+        <span>ⓘ</span>
+        <span>Info</span>
+    </button>
+
+</nav>
+
+
+<!-- Layer panel -->
+<section id="layerPanel" class="layer-panel hidden">
+
+    <div class="layer-header">
+
+        <h2>Map layers</h2>
+
+        <button id="closeLayers" type="button">
+            ×
+        </button>
+
+    </div>
+
+    <label class="layer-option">
+        <input id="togglePlants" type="checkbox" checked>
+        <span class="layer-symbol plant-symbol"></span>
+        Plants
+    </label>
+
+    <label class="layer-option">
+        <input id="toggleTrees" type="checkbox" checked>
+        <span class="layer-symbol tree-symbol"></span>
+        Trees
+    </label>
+
+    <label class="layer-option">
+        <input id="toggleTurf" type="checkbox" checked>
+        <span class="layer-symbol turf-symbol"></span>
+        Turf
+    </label>
+
+    <label class="layer-option">
+        <input id="toggleParcel" type="checkbox" checked>
+        <span class="layer-symbol parcel-symbol"></span>
+        Parcel
+    </label>
+
+</section>
+```
+
+</div>
+
+<!-- Leaflet JavaScript -->
+
+<script
+    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    crossorigin=""
+></script>
+
+<!-- Application JavaScript -->
+
+<script src="js/app.js"></script>
+
+</body>
+</html>
