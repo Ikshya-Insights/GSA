@@ -1,8 +1,28 @@
+const defaultMapView = {
+  center: [19.1323, 72.9153],
+  zoom: 17,
+};
+
+const vegetationIconConfig = {
+  plants: {
+    url: "icons/plant_icon.png?v=icons-refresh-2",
+    size: [10, 10],
+    anchor: [5, 10],
+    tooltipAnchor: [0, -9],
+  },
+  trees: {
+    url: "icons/tree_icon.png?v=icons-refresh-2",
+    size: [12, 12],
+    anchor: [6, 12],
+    tooltipAnchor: [0, -11],
+  },
+};
+
 const map = L.map("map", {
   zoomControl: true,
   attributionControl: true,
   preferCanvas: true,
-}).setView([19.1323, 72.9153], 17);
+}).setView(defaultMapView.center, defaultMapView.zoom);
 
 L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
   maxZoom: 19,
@@ -29,6 +49,14 @@ const closeLayers = document.getElementById("closeLayers");
 const mobileLayers = document.getElementById("mobileLayers");
 const mobileSearch = document.getElementById("mobileSearch");
 const mobileInfo = document.getElementById("mobileInfo");
+const resetExtent = document.getElementById("resetExtent");
+const openDashboard = document.getElementById("openDashboard");
+const openTableView = document.getElementById("openTableView");
+const tableView = document.getElementById("tableView");
+const closeTableView = document.getElementById("closeTableView");
+const tableViewTitle = document.getElementById("tableViewTitle");
+const tableViewMeta = document.getElementById("tableViewMeta");
+const featureTable = document.getElementById("featureTable");
 
 const infoType = document.getElementById("infoType");
 const infoTitle = document.getElementById("infoTitle");
@@ -41,19 +69,14 @@ const layerCheckboxes = {
   parcel: document.getElementById("toggleParcel"),
 };
 
-const counts = {
-  plants: document.getElementById("plantCount"),
-  trees: document.getElementById("treeCount"),
-  turf: document.getElementById("turfCount"),
-};
-
 const featureIndex = [];
+const tableData = {};
 
 const typeLabelMap = {
   plants: "Plant",
   trees: "Tree",
   turf: "Turf",
-  parcel: "Parcel",
+  parcel: "Parcel 59",
 };
 
 function setMobileInfoOpen(open) {
@@ -87,6 +110,45 @@ function safeText(value) {
     return "—";
   }
   return String(value);
+}
+
+function renderTableView(type) {
+  const data = tableData[type];
+  if (!data || !data.features.length) {
+    tableViewTitle.textContent = typeLabelMap[type] || "Data";
+    tableViewMeta.textContent = "No data available.";
+    featureTable.replaceChildren();
+    return;
+  }
+
+  const columns = [...new Set(
+    data.features.flatMap((feature) => Object.keys(feature.properties || {})),
+  )];
+  const headerRow = document.createElement("tr");
+  columns.forEach((column) => {
+    const header = document.createElement("th");
+    header.scope = "col";
+    header.textContent = column.replace(/_/g, " ");
+    headerRow.appendChild(header);
+  });
+
+  const thead = document.createElement("thead");
+  thead.appendChild(headerRow);
+  const tbody = document.createElement("tbody");
+  data.features.forEach((feature) => {
+    const row = document.createElement("tr");
+    const properties = feature.properties || {};
+    columns.forEach((column) => {
+      const cell = document.createElement("td");
+      cell.textContent = safeText(properties[column]);
+      row.appendChild(cell);
+    });
+    tbody.appendChild(row);
+  });
+
+  tableViewTitle.textContent = typeLabelMap[type] || type;
+  tableViewMeta.textContent = `${data.features.length.toLocaleString()} records · ${columns.length} fields`;
+  featureTable.replaceChildren(thead, tbody);
 }
 
 function resolveFeatureTitle(feature, type) {
@@ -297,6 +359,58 @@ function formatAttributeList(feature, type) {
     .sort(([a], [b]) => a.localeCompare(b));
 }
 
+function buildPopupTable(feature, type) {
+  const title = resolveFeatureTitle(feature, type);
+  const subtitle = getFeatureSubtitle(feature, type);
+  const rows = formatAttributeList(feature, type);
+  const imageUrl = resolveFeatureImage(feature, type);
+
+  const bodyMarkup = rows.length
+    ? rows
+        .map(
+          ([key, value]) => `
+            <tr>
+              <th>${safeText(key).replace(/_/g, " ")}</th>
+              <td>${safeText(value)}</td>
+            </tr>
+          `,
+        )
+        .join("")
+    : `
+      <tr>
+        <th>Details</th>
+        <td>No additional metadata available.</td>
+      </tr>
+    `;
+
+  const imageMarkup = imageUrl
+    ? `<div class="feature-popup-image-wrap"><img src="${imageUrl}" alt="${title}" class="feature-popup-image" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"><div class="feature-popup-image-placeholder" style="display:none;">Image unavailable</div></div>`
+    : `<div class="feature-popup-image-placeholder feature-popup-image-placeholder--muted">Image coming soon</div>`;
+
+  return `
+    <div class="feature-popup">
+      <div class="feature-popup-header">
+        <strong>${title}</strong>
+        <span>${subtitle}</span>
+      </div>
+      ${imageMarkup}
+      <div class="feature-popup-scroll">
+        <table class="feature-popup-table">
+          <thead>
+            <tr>
+              <th>Field</th>
+              <th>Value</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${bodyMarkup}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
+}
+
 function renderInfoPanel(feature, type) {
   const props = feature.properties || {};
   const title = resolveFeatureTitle(feature, type);
@@ -338,19 +452,7 @@ function renderInfoPanel(feature, type) {
         </dl>
     `;
 
-  setMobileInfoOpen(true);
-}
-
-function updateFeatureCounts() {
-  counts.plants.textContent = featureIndex.filter(
-    (item) => item.type === "plants",
-  ).length;
-  counts.trees.textContent = featureIndex.filter(
-    (item) => item.type === "trees",
-  ).length;
-  counts.turf.textContent = featureIndex.filter(
-    (item) => item.type === "turf",
-  ).length;
+  // Keep map clicks focused on the popup and do not open the separate info panel.
 }
 
 function refreshLayerVisibility() {
@@ -462,20 +564,20 @@ function renderLayer(type, data) {
       const base = {
         color:
           type === "parcel"
-            ? "#3f4f4e"
+            ? "#d32f2f"
             : type === "trees"
-              ? "#214f37"
+              ? "transparent"
               : type === "turf"
                 ? "#7fa85d"
                 : "#2e7d4d",
-        weight: type === "parcel" ? 2 : 1.5,
-        opacity: 0.9,
-        fillOpacity: type === "parcel" ? 0.12 : 0.35,
+        weight: type === "parcel" ? 2 : type === "trees" ? 0 : 1.5,
+        opacity: type === "trees" ? 0 : 0.9,
+        fillOpacity: type === "parcel" ? 0.12 : type === "trees" ? 0 : 0.35,
         fillColor:
           type === "parcel"
-            ? "#dfe9e6"
+            ? "#f8d7d7"
             : type === "trees"
-              ? "#2f7d50"
+              ? "transparent"
               : type === "turf"
                 ? "#96bf77"
                 : "#49b86c",
@@ -483,17 +585,30 @@ function renderLayer(type, data) {
       return base;
     },
     pointToLayer: (feature, latlng) => {
-      const marker = L.circleMarker(latlng, {
-        radius: 7,
-        color: "#1c7a45",
-        fillColor: "#48c96c",
-        weight: 2,
-        fillOpacity: 0.9,
-      });
+      const iconConfig = vegetationIconConfig[type];
+      const marker = iconConfig
+        ? L.marker(latlng, {
+            icon: L.icon({
+              iconUrl: iconConfig.url,
+              iconSize: iconConfig.size,
+              iconAnchor: iconConfig.anchor,
+              tooltipAnchor: iconConfig.tooltipAnchor,
+            }),
+          })
+        : L.circleMarker(latlng, {
+            radius: 7,
+            color: "#1c7a45",
+            fillColor: "#48c96c",
+            weight: 2,
+            fillOpacity: 0.9,
+          });
       marker.bindTooltip(resolveFeatureTitle(feature, type), {
         direction: "top",
       });
-      marker.on("click", () => renderInfoPanel(feature, type));
+      marker.bindPopup(buildPopupTable(feature, type), {
+        maxWidth: 280,
+        className: "feature-popup-wrapper",
+      });
       return marker;
     },
     onEachFeature: (feature, layerInstance) => {
@@ -501,19 +616,37 @@ function renderLayer(type, data) {
         layerInstance.bindTooltip(resolveFeatureTitle(feature, type), {
           sticky: true,
         });
+        layerInstance.bindPopup(buildPopupTable(feature, type), {
+          maxWidth: 280,
+          className: "feature-popup-wrapper",
+        });
+
+        if (type === "trees" && layerInstance.getBounds) {
+          const iconConfig = vegetationIconConfig.trees;
+          const treeIcon = L.marker(layerInstance.getBounds().getCenter(), {
+            icon: L.icon({
+              iconUrl: iconConfig.url,
+              iconSize: iconConfig.size,
+              iconAnchor: iconConfig.anchor,
+              tooltipAnchor: iconConfig.tooltipAnchor,
+            }),
+          });
+          treeIcon.bindTooltip(resolveFeatureTitle(feature, type), {
+            direction: "top",
+          });
+          treeIcon.bindPopup(buildPopupTable(feature, type), {
+            maxWidth: 280,
+            className: "feature-popup-wrapper",
+          });
+          layerGroups[type].addLayer(treeIcon);
+        }
       }
-      layerInstance.on("click", () => renderInfoPanel(feature, type));
       addFeatureToSearchIndex(type, feature);
     },
   });
 
   layerGroups[type].addLayer(layer);
 
-  if (type === "plants") {
-    layer.eachLayer((item) =>
-      item.on("popupopen", () => setMobileInfoOpen(true)),
-    );
-  }
 }
 
 async function loadGeoJsonFile(filePath, type) {
@@ -522,6 +655,7 @@ async function loadGeoJsonFile(filePath, type) {
     throw new Error(`Unable to load ${type} data (${response.status})`);
   }
   const data = await response.json();
+  tableData[type] = data;
   if (!data || !data.features || !data.features.length) {
     return;
   }
@@ -543,8 +677,6 @@ async function initializeMapData() {
       console.error(error);
     }
   }
-
-  updateFeatureCounts();
 
   const bounds = L.latLngBounds([]);
   Object.values(layerGroups).forEach((group) => {
@@ -598,6 +730,29 @@ mobileSearch.addEventListener("click", () => {
 
 mobileInfo.addEventListener("click", () => {
   setMobileInfoOpen(true);
+});
+
+resetExtent.addEventListener("click", () => {
+  map.setView(defaultMapView.center, defaultMapView.zoom, {
+    animate: true,
+  });
+});
+
+openDashboard.addEventListener("click", () => {
+  window.open("dashboard.html", "_blank", "noopener,noreferrer");
+});
+
+openTableView.addEventListener("click", () => {
+  tableView.classList.remove("hidden");
+  renderTableView(document.querySelector('input[name="tableType"]:checked').value);
+});
+
+closeTableView.addEventListener("click", () => {
+  tableView.classList.add("hidden");
+});
+
+document.querySelectorAll('input[name="tableType"]').forEach((input) => {
+  input.addEventListener("change", () => renderTableView(input.value));
 });
 
 Object.entries(layerCheckboxes).forEach(([type, checkbox]) => {

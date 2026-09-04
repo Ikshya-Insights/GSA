@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GSA Dashboard</title>
+    <style>
+        :root {
+            color: #26352e;
+            background: #eef5f0;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background: #eef5f0;
+        }
+
+        header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            padding: 18px 24px;
+            background: #ffffff;
+            border-bottom: 1px solid #dfe5e2;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 21px;
+        }
+
+        .dashboard-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .dashboard-brand img {
+            width: 42px;
+            height: 42px;
+            object-fit: contain;
+            flex-shrink: 0;
+        }
+
+        .dashboard-header-link {
+            white-space: nowrap;
+        }
+
+        header p {
+            margin: 3px 0 0;
+            color: #6b7280;
+            font-size: 13px;
+        }
+
+        a {
+            color: #2e6847;
+            font-size: 13px;
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        main {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 28px 24px 40px;
+        }
+
+        .dashboard-intro {
+            margin-bottom: 22px;
+        }
+
+        .dashboard-intro h2 {
+            margin: 0;
+            font-size: 24px;
+            letter-spacing: -0.02em;
+        }
+
+        .dashboard-intro p {
+            margin: 6px 0 0;
+            color: #69756e;
+            font-size: 14px;
+        }
+
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 14px;
+            margin-bottom: 22px;
+        }
+
+        .kpi-card,
+        .chart-card,
+        .recommendation-card {
+            background: #ffffff;
+            border: 1px solid #dfe5e2;
+            border-radius: 10px;
+        }
+
+        .kpi-card {
+            min-height: 112px;
+            padding: 18px;
+            border-top: 3px solid #3c7a58;
+        }
+
+        .kpi-card.tree {
+            border-top-color: #275d3a;
+        }
+
+        .kpi-card.turf {
+            border-top-color: #8cae70;
+        }
+
+        .kpi-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #69756e;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        .kpi-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 22px;
+            height: 22px;
+            flex-shrink: 0;
+        }
+
+        .kpi-icon img {
+            display: block;
+            width: 22px;
+            height: 22px;
+            object-fit: contain;
+        }
+
+        .turf-kpi-icon {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #8cae70;
+            border: 2px solid #6f9654;
+        }
+
+        .kpi-value {
+            display: block;
+            margin-top: 12px;
+            color: #26352e;
+            font-size: 32px;
+            font-weight: 700;
+            line-height: 1;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 14px;
+        }
+
+        .chart-card {
+            min-height: 286px;
+            padding: 18px;
+        }
+
+        .chart-card.wide,
+        .recommendation-card {
+            grid-column: 1 / -1;
+        }
+
+        .card-heading {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 18px;
+        }
+
+        .card-heading h3 {
+            margin: 0;
+            font-size: 16px;
+        }
+
+        .card-heading p {
+            margin: 5px 0 0;
+            color: #69756e;
+            font-size: 12px;
+        }
+
+        .chart-placeholder {
+            min-height: 190px;
+            overflow-x: auto;
+            border-radius: 7px;
+            background: #fbfcfb;
+        }
+
+        .species-chart {
+            height: 230px;
+            border: 1px solid #edf2ee;
+            overflow: auto;
+        }
+
+        .species-chart svg {
+            display: block;
+            width: 100%;
+            min-width: 430px;
+            height: auto;
+        }
+
+        .species-label {
+            fill: #52645a;
+            font-size: 11px;
+        }
+
+        .species-bar {
+            opacity: 0.9;
+        }
+
+        .plant-bar {
+            fill: #3c7a58;
+        }
+
+        .tree-bar {
+            fill: #275d3a;
+        }
+
+        .species-value {
+            fill: #26352e;
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        .chart-empty {
+            display: grid;
+            min-height: 190px;
+            place-items: center;
+            color: #718078;
+            font-size: 12px;
+        }
+
+        .recommendation-card {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 24px;
+            padding: 18px;
+            background: #edf5ef;
+            border-color: #d2e3d6;
+        }
+
+        .recommendation-card p {
+            margin: 0;
+            color: #69756e;
+            font-size: 12px;
+        }
+
+        .recommendation-card h3 {
+            margin: 0 0 5px;
+            font-size: 15px;
+        }
+
+        .recommendation-tag {
+            flex-shrink: 0;
+            padding: 7px 9px;
+            border-radius: 5px;
+            background: #ffffff;
+            color: #2e6847;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+        }
+
+        @media (max-width: 720px) {
+            header {
+                padding: 14px 16px;
+            }
+
+            .dashboard-brand img {
+                width: 36px;
+                height: 36px;
+            }
+
+            main {
+                padding: 22px 16px 32px;
+            }
+
+            .kpi-grid {
+                display: grid;
+                grid-template-columns: repeat(3, minmax(150px, 1fr));
+                overflow-x: auto;
+                padding-bottom: 4px;
+            }
+
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .chart-card.wide,
+            .recommendation-card {
+                grid-column: auto;
+            }
+
+            .recommendation-card {
+                align-items: flex-start;
+                flex-direction: column;
+                gap: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="dashboard-brand">
+            <img src="icons/company_logo.jpg?v=icons-refresh-2" alt="Company logo">
+            <div>
+                <h1>GSA Dashboard</h1>
+                <p>IIT Bombay Campus</p>
+            </div>
+        </div>
+        <a class="dashboard-header-link" href="index.html">Back to map</a>
+    </header>
+    <main>
+        <section class="kpi-grid" aria-label="Vegetation totals">
+            <article class="kpi-card plant">
+                <span class="kpi-label">
+                    <span class="kpi-icon"><img src="icons/plant_icon.png?v=icons-refresh-2" alt=""></span>
+                    Plants surveyed
+                </span>
+                <strong class="kpi-value" id="plantTotal">—</strong>
+            </article>
+            <article class="kpi-card tree">
+                <span class="kpi-label">
+                    <span class="kpi-icon"><img src="icons/tree_icon.png?v=icons-refresh-2" alt=""></span>
+                    Trees surveyed
+                </span>
+                <strong class="kpi-value" id="treeTotal">—</strong>
+            </article>
+            <article class="kpi-card turf">
+                <span class="kpi-label">
+                    <span class="kpi-icon turf-kpi-icon" aria-hidden="true"></span>
+                    Turf areas
+                </span>
+                <strong class="kpi-value" id="turfTotal">—</strong>
+            </article>
+        </section>
+
+        <section class="dashboard-grid" aria-label="Species analysis">
+            <article class="chart-card">
+                <div class="card-heading">
+                    <div>
+                        <h3>Plant species count</h3>
+                        <p>Species distribution across surveyed plants</p>
+                    </div>
+                </div>
+                <div id="plantSpeciesChart" class="chart-placeholder species-chart" role="img" aria-label="Plant species count bar chart">
+                    <div class="chart-empty">Loading plant species...</div>
+                </div>
+            </article>
+
+            <article class="chart-card">
+                <div class="card-heading">
+                    <div>
+                        <h3>Tree species count</h3>
+                        <p>Species distribution across surveyed trees</p>
+                    </div>
+                </div>
+                <div id="treeSpeciesChart" class="chart-placeholder species-chart" role="img" aria-label="Tree species count bar chart">
+                    <div class="chart-empty">Loading tree species...</div>
+                </div>
+            </article>
+
+            <aside class="recommendation-card">
+                <div>
+                    <h3>Zone-wise comparison</h3>
+                    <p>This space is reserved for the recommended zone-wise comparison chart.</p>
+                </div>
+            </aside>
+        </section>
+    </main>
+    <script>
+        const dashboardSources = {
+            plants: "data/plants.geojson",
+            trees: "data/trees.geojson",
+            turf: "data/turf.geojson",
+        };
+
+        const svgNamespace = "http://www.w3.org/2000/svg";
+
+        function createSvgElement(name, attributes = {}) {
+            const element = document.createElementNS(svgNamespace, name);
+            Object.entries(attributes).forEach(([key, value]) => {
+                element.setAttribute(key, value);
+            });
+            return element;
+        }
+
+        function speciesName(feature) {
+            const properties = feature.properties || {};
+            return properties.botanical_name || properties.Species || properties.comman_name || "Unknown species";
+        }
+
+        function renderSpeciesChart(containerId, features, label) {
+            const container = document.getElementById(containerId);
+            const counts = new Map();
+
+            features.forEach((feature) => {
+                const name = speciesName(feature);
+                counts.set(name, (counts.get(name) || 0) + 1);
+            });
+
+            const species = [...counts.entries()]
+                .sort(([, firstCount], [, secondCount]) => secondCount - firstCount);
+
+            if (!species.length) {
+                container.innerHTML = '<div class="chart-empty">No species data available</div>';
+                return;
+            }
+
+            const width = 560;
+            const labelWidth = 178;
+            const chartWidth = width - labelWidth - 24;
+            const rowHeight = 30;
+            const height = species.length * rowHeight + 18;
+            const maxCount = species[0][1];
+            const svg = createSvgElement("svg", {
+                viewBox: `0 0 ${width} ${height}`,
+                role: "img",
+                "aria-label": `${label} species count bar chart`,
+            });
+
+            species.forEach(([name, count], index) => {
+                const y = index * rowHeight + 8;
+                const barWidth = Math.max(4, (count / maxCount) * chartWidth);
+                const text = createSvgElement("text", {
+                    x: labelWidth - 10,
+                    y: y + 14,
+                    "text-anchor": "end",
+                    class: "species-label",
+                });
+                text.textContent = name.length > 25 ? `${name.slice(0, 23)}...` : name;
+
+                const bar = createSvgElement("rect", {
+                    x: labelWidth,
+                    y: y + 3,
+                    width: barWidth,
+                    height: 18,
+                    rx: 3,
+                    class: `species-bar ${label === "Plant" ? "plant-bar" : "tree-bar"}`,
+                });
+                const value = createSvgElement("text", {
+                    x: labelWidth + barWidth + 7,
+                    y: y + 16,
+                    class: "species-value",
+                });
+                value.textContent = count;
+
+                const title = createSvgElement("title");
+                title.textContent = `${name}: ${count}`;
+                bar.appendChild(title);
+                svg.append(text, bar, value);
+            });
+
+            container.replaceChildren(svg);
+        }
+
+        async function loadDashboardTotals() {
+            const entries = await Promise.all(
+                Object.entries(dashboardSources).map(async ([type, source]) => {
+                    const response = await fetch(source);
+                    const data = await response.json();
+                    return [type, data];
+                }),
+            );
+
+            const datasets = Object.fromEntries(entries);
+            document.getElementById("plantTotal").textContent = datasets.plants.features.length.toLocaleString();
+            document.getElementById("treeTotal").textContent = datasets.trees.features.length.toLocaleString();
+            document.getElementById("turfTotal").textContent = datasets.turf.features.length.toLocaleString();
+            renderSpeciesChart("plantSpeciesChart", datasets.plants.features, "Plant");
+            renderSpeciesChart("treeSpeciesChart", datasets.trees.features, "Tree");
+        }
+
+        loadDashboardTotals().catch(() => {
+            document.querySelectorAll(".kpi-value").forEach((value) => {
+                value.textContent = "N/A";
+            });
+        });
+    </script>
+</body>
+</html>

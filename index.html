@@ -5,7 +5,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-```
 <title>Campus Vegetation Viewer</title>
 
 <!-- Leaflet CSS -->
@@ -16,8 +15,7 @@
 >
 
 <!-- Application CSS -->
-<link rel="stylesheet" href="css/style.css">
-```
+<link rel="stylesheet" href="css/style.css?v=dashboard-asset">
 
 </head>
 
@@ -25,12 +23,14 @@
 
 <div class="app">
 
-```
 <!-- Header -->
 <header class="app-header">
-    <div>
-        <h1>Green Space Audit</h1>
-        <p>IIT Bombay Powai Campus</p>
+    <div class="brand-wrap">
+        <img src="./icons/company_logo.jpg?v=icons-refresh-2" alt="Company logo" class="company-logo">
+        <div>
+            <h1>Green Space Audit</h1>
+            <p>IIT Bombay Powai Campus</p>
+        </div>
     </div>
 
     <div class="header-actions">
@@ -78,24 +78,73 @@
 
         <div id="map"></div>
 
-        <!-- Map statistics -->
-        <div class="map-stats">
+        <button
+            id="openDashboard"
+            class="map-action map-dashboard"
+            type="button"
+            aria-label="Open dashboard"
+            title="Open dashboard"
+        >
+            <img src="icons/dashboard_icon.jpg?v=icons-refresh-2" alt="">
+        </button>
 
-            <div class="stat">
-                <span class="stat-number" id="plantCount">0</span>
-                <span class="stat-label">Plants</span>
+        <button
+            id="openTableView"
+            class="map-action map-table-view"
+            type="button"
+            aria-label="Open table view"
+            title="Open table view"
+        >
+            <img src="icons/table_icon.jpg?v=icons-refresh-2" alt="">
+        </button>
+
+        <button
+            id="resetExtent"
+            class="map-action reset-extent"
+            type="button"
+            aria-label="Reset map extent"
+            title="Reset map extent"
+        >
+            ⌖
+        </button>
+
+        <section id="tableView" class="table-view hidden" aria-label="Vegetation table view">
+            <div class="table-view-header">
+                <div>
+                    <span class="table-view-kicker">Complete data table</span>
+                    <h2 id="tableViewTitle">Plants</h2>
+                </div>
+                <button id="closeTableView" class="close-button" type="button" aria-label="Close table view">×</button>
             </div>
-
-            <div class="stat">
-                <span class="stat-number" id="treeCount">0</span>
-                <span class="stat-label">Trees</span>
+            <div class="table-view-options" role="group" aria-label="Select table layer">
+                <label><input type="radio" name="tableType" value="plants" checked> Plants</label>
+                <label><input type="radio" name="tableType" value="trees"> Trees</label>
+                <label><input type="radio" name="tableType" value="turf"> Turf</label>
             </div>
-
-            <div class="stat">
-                <span class="stat-number" id="turfCount">0</span>
-                <span class="stat-label">Turf</span>
+            <div id="tableViewMeta" class="table-view-meta"></div>
+            <div class="table-scroll">
+                <table id="featureTable"></table>
             </div>
+        </section>
 
+        <div class="map-legend" aria-label="Map legend">
+            <div class="legend-title">Legend</div>
+            <div class="legend-item">
+                <span class="legend-icon"><img src="icons/plant_icon.png?v=icons-refresh-2" alt="Plant icon"></span>
+                <span>Plants</span>
+            </div>
+            <div class="legend-item">
+                <span class="legend-icon"><img src="icons/tree_icon.png?v=icons-refresh-2" alt="Tree icon"></span>
+                <span>Trees</span>
+            </div>
+            <div class="legend-item">
+                <span class="layer-symbol turf-symbol"></span>
+                <span>Turf</span>
+            </div>
+            <div class="legend-item">
+                <span class="layer-symbol parcel-symbol"></span>
+                <span>Parcel 59</span>
+            </div>
         </div>
 
     </section>
@@ -175,7 +224,7 @@
 
     <div class="layer-header">
 
-        <h2>Map layers</h2>
+        <h2>GSA Layers</h2>
 
         <button id="closeLayers" type="button">
             ×
@@ -204,11 +253,10 @@
     <label class="layer-option">
         <input id="toggleParcel" type="checkbox" checked>
         <span class="layer-symbol parcel-symbol"></span>
-        Parcel
+        Parcel 59
     </label>
 
 </section>
-```
 
 </div>
 
@@ -221,7 +269,7 @@
 
 <!-- Application JavaScript -->
 
-<script src="js/app.js"></script>
+<script src="js/app.js?v=table-view"></script>
 
 </body>
 </html>
