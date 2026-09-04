@@ -30,10 +30,10 @@ L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
 }).addTo(map);
 
 const layerGroups = {
+  parcel: L.layerGroup().addTo(map),
   plants: L.layerGroup().addTo(map),
   trees: L.layerGroup().addTo(map),
   turf: L.layerGroup().addTo(map),
-  parcel: L.layerGroup().addTo(map),
 };
 
 const searchInput = document.getElementById("searchInput");
@@ -52,6 +52,7 @@ const mobileInfo = document.getElementById("mobileInfo");
 const resetExtent = document.getElementById("resetExtent");
 const openDashboard = document.getElementById("openDashboard");
 const openTableView = document.getElementById("openTableView");
+const cursorCoordinates = document.getElementById("cursorCoordinates");
 const tableView = document.getElementById("tableView");
 const closeTableView = document.getElementById("closeTableView");
 const tableViewTitle = document.getElementById("tableViewTitle");
@@ -71,6 +72,7 @@ const layerCheckboxes = {
 
 const featureIndex = [];
 const tableData = {};
+let highlightedFeature = null;
 
 const typeLabelMap = {
   plants: "Plant",
@@ -81,6 +83,65 @@ const typeLabelMap = {
 
 function setMobileInfoOpen(open) {
   infoPanel.classList.toggle("mobile-open", open);
+}
+
+function formatCoordinate(value, positiveDirection, negativeDirection) {
+  return `${Math.abs(value).toFixed(4)}° ${value >= 0 ? positiveDirection : negativeDirection}`;
+}
+
+function updateCursorCoordinates(event) {
+  cursorCoordinates.textContent = `${formatCoordinate(event.latlng.lat, "N", "S")}  ${formatCoordinate(event.latlng.lng, "E", "W")}`;
+}
+
+function clearFeatureHighlight() {
+  if (!highlightedFeature) {
+    return;
+  }
+
+  const { element, layer, style } = highlightedFeature;
+  element?.classList.remove("feature-highlight-icon");
+  layer?.setZIndexOffset?.(0);
+  if (layer?.setStyle && style) {
+    layer.setStyle(style);
+  }
+  highlightedFeature = null;
+}
+
+function highlightFeature(layer, type) {
+  clearFeatureHighlight();
+
+  const element = layer.getElement?.();
+  if (element && layer.setStyle && type !== "trees") {
+    highlightedFeature = {
+      layer,
+      style: {
+        color: layer.options.color,
+        weight: layer.options.weight,
+        opacity: layer.options.opacity,
+        fillColor: layer.options.fillColor,
+        fillOpacity: layer.options.fillOpacity,
+      },
+    };
+    layer.setStyle({
+      color: "#f59e0b",
+      weight: 3,
+      opacity: 1,
+      fillColor: "#fef3c7",
+      fillOpacity: 0.45,
+    });
+    return;
+  }
+
+  if (element) {
+    element.classList.add("feature-highlight-icon");
+    layer.setZIndexOffset?.(1000);
+    highlightedFeature = { element, layer };
+  }
+}
+
+function attachFeatureHighlight(layer, type) {
+  layer.on("click", () => highlightFeature(layer, type));
+  layer.on("popupclose", clearFeatureHighlight);
 }
 
 function toggleSearchPanel(force) {
@@ -609,6 +670,7 @@ function renderLayer(type, data) {
         maxWidth: 280,
         className: "feature-popup-wrapper",
       });
+      attachFeatureHighlight(marker, type);
       return marker;
     },
     onEachFeature: (feature, layerInstance) => {
@@ -620,6 +682,11 @@ function renderLayer(type, data) {
           maxWidth: 280,
           className: "feature-popup-wrapper",
         });
+        attachFeatureHighlight(layerInstance, type);
+
+        if (type === "parcel" && layerInstance.bringToBack) {
+          layerInstance.bringToBack();
+        }
 
         if (type === "trees" && layerInstance.getBounds) {
           const iconConfig = vegetationIconConfig.trees;
@@ -638,6 +705,7 @@ function renderLayer(type, data) {
             maxWidth: 280,
             className: "feature-popup-wrapper",
           });
+          attachFeatureHighlight(treeIcon, type);
           layerGroups[type].addLayer(treeIcon);
         }
       }
@@ -741,6 +809,8 @@ resetExtent.addEventListener("click", () => {
 openDashboard.addEventListener("click", () => {
   window.open("dashboard.html", "_blank", "noopener,noreferrer");
 });
+
+map.on("mousemove", updateCursorCoordinates);
 
 openTableView.addEventListener("click", () => {
   tableView.classList.remove("hidden");
